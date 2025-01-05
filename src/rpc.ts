@@ -36,7 +36,7 @@ export class ZKWasmAppRpc {
     }
   }
 
-  public async sendTransaction(cmd: BigUint64Array, prikey: string): Promise<number> {
+  public async sendTransaction(cmd: BigUint64Array, prikey: string): Promise<any> {
     try {
       let resp:any = await this.sendRawTransaction(cmd, prikey);
       for (let i=0; i<5; i++) {//detect job status with 1 sec delay

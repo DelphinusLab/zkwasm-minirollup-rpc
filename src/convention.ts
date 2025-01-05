@@ -57,6 +57,43 @@ export class TransactionData {
   }
 }
 
+export function createCommand(nonce: bigint, command: bigint, params: Array<bigint>): BigUint64Array {
+  const cmd = (nonce << 16n) + (BigInt(params.length + 1) << 8n) + command;
+  let buf = [cmd];
+  buf = buf.concat(params);
+  const barray = new BigUint64Array(buf);
+  return barray;
+}
+
+export function createWithdrawCommand(nonce: bigint, commandWithdraw: bigint, address: string, tokenIndex: bigint, amount: bigint) {
+  let addressBN = new BN(address, 16);
+  let a = addressBN.toArray("be", 20); // 20 bytes = 160 bits and split into 4, 8, 8
+
+  console.log("address is", address);
+  console.log("address be is", a);
+
+  /* bit layout
+   * (32 bit amount | 32 bit highbit of address)
+   * (64 bit mid bit of address (be))
+   * (64 bit tail bit of address (be))
+   */
+
+  let firstLimb = BigInt('0x' + bytesToHex(a.slice(0,4).reverse()));
+  let sndLimb = BigInt('0x' + bytesToHex(a.slice(4,12).reverse()));
+  let thirdLimb = BigInt('0x' + bytesToHex(a.slice(12, 20).reverse()));
+
+  /*
+  console.log("first is", firstLimb);
+  console.log("snd is", sndLimb);
+  console.log("third is", thirdLimb);
+  */
+  return createCommand(
+    nonce,
+    commandWithdraw,
+    [tokenIndex, (firstLimb << 32n) + amount, sndLimb, thirdLimb]
+  );
+}
+
 
 export class PlayerConvention {
   processingKey: string;
@@ -70,13 +107,6 @@ export class PlayerConvention {
     this.commandWithdraw = commandWithdraw;
   }
 
-  createCommand(nonce: bigint, command: bigint, params: Array<bigint>) {
-    const cmd = (nonce << 16n) + (BigInt(params.length + 1) << 8n) + command;
-    let buf = [cmd];
-    buf = buf.concat(params);
-    const barray = new BigUint64Array(buf);
-    return barray;
-  }
 
   async getConfig(): Promise<any> {
     let config = await this.rpc.query_config();
@@ -106,7 +136,7 @@ export class PlayerConvention {
     let nonce = await this.getNonce();
     try {
       const state = await this.rpc.sendTransaction(
-        this.createCommand(nonce, this.commandDeposit, [pid_1, pid_2, tokenIndex, amount]),
+        createCommand(nonce, this.commandDeposit, [pid_1, pid_2, tokenIndex, amount]),
         this.processingKey
       );
       return state;
@@ -120,34 +150,15 @@ export class PlayerConvention {
 
   async withdrawRewards(address: string, tokenIndex: bigint, amount: bigint) {
     let nonce = await this.getNonce();
-    let addressBN = new BN(address, 16);
-    let a = addressBN.toArray("be", 20); // 20 bytes = 160 bits and split into 4, 8, 8
-
-    console.log("address is", address);
-    console.log("address be is", a);
-
-    /* bit layout
-     * (32 bit amount | 32 bit highbit of address)
-     * (64 bit mid bit of address (be))
-     * (64 bit tail bit of address (be))
-     */
-
-
-    let firstLimb = BigInt('0x' + bytesToHex(a.slice(0,4).reverse()));
-    let sndLimb = BigInt('0x' + bytesToHex(a.slice(4,12).reverse()));
-    let thirdLimb = BigInt('0x' + bytesToHex(a.slice(12, 20).reverse()));
-
-
-    console.log("first is", firstLimb);
-    console.log("snd is", sndLimb);
-    console.log("third is", thirdLimb);
 
     try {
       const state = await this.rpc.sendTransaction(
-        this.createCommand(
+        createWithdrawCommand(
           nonce,
           this.commandWithdraw,
-          [tokenIndex, (firstLimb << 32n) + amount, sndLimb, thirdLimb]
+          address,
+          tokenIndex,
+          amount,
         ),
         this.processingKey
       );
