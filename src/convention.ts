@@ -109,7 +109,7 @@ export class PlayerConvention {
 
 
   async getConfig(): Promise<any> {
-    let config = await this.rpc.query_config();
+    let config = await this.rpc.queryConfig();
     return config;
   }
 

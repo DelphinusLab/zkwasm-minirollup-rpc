@@ -118,7 +118,7 @@ export class ZKWasmAppRpc {
     }
   }
 
-  async query_config(): Promise<JSON> {
+  async queryConfig(): Promise<JSON> {
     try {
       const response = await this.instance("/config", {
         method: 'POST'
@@ -134,6 +134,25 @@ export class ZKWasmAppRpc {
       throw "QueryStateError " + error;
     }
   }
+
+  async queryData(path: string): Promise<JSON> {
+    try {
+      const url = `/data/${path}`;
+      const response = await this.instance(url, {
+        method: 'GET'
+      });
+
+      if (response.status === 201) {
+        const jsonResponse = response.data;
+        return jsonResponse;
+      } else {
+        throw "QueryDataError";
+      }
+    } catch(error) {
+      throw "QueryDataError" + error;
+    }
+  }
+
 
   async queryJobStatus(jobId: number) {
     try {
