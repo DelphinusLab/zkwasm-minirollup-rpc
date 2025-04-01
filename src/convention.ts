@@ -132,6 +132,21 @@ export class PlayerConvention {
     return nonce;
   }
 
+  async checkDeposit(nonce: bigint, pid_1:bigint, pid_2:bigint, tokenIndex:bigint, amount:bigint) {
+    try {
+      const state = await this.rpc.checkTx(
+        createCommand(nonce, this.commandDeposit, [pid_1, pid_2, tokenIndex, amount]),
+        this.processingKey
+      );
+      return state;
+    } catch(e) {
+      if(e instanceof Error) {
+        console.log(e.message);
+      }
+      console.log("check deposit error ", pid_1, pid_2);
+    }
+  }
+
   async deposit(pid_1:bigint, pid_2:bigint, tokenIndex:bigint, amount:bigint) {
     let nonce = await this.getNonce();
     try {
