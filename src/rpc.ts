@@ -17,6 +17,27 @@ export class ZKWasmAppRpc {
     });
   }
 
+  public async checkTx(cmd: BigUint64Array, prikey: string): Promise<JSON> {
+    try {
+      const data = sign(cmd, prikey);
+      const response = await this.instance.post(
+        "/querytx",
+        JSON.stringify(data)
+      );
+      if (response.status === 201) {
+        const jsonResponse = response.data;
+        return jsonResponse;
+      } else {
+        throw "Query Transaction Error";
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      throw "Query Transaction Error" + error;
+    }
+  }
+
+
+
   public async sendExtrinsic(cmd: BigUint64Array, prikey: string): Promise<JSON> {
     try {
       const data = sign(cmd, prikey);
