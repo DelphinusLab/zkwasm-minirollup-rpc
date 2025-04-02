@@ -143,7 +143,7 @@ export class PlayerConvention {
       if(e instanceof Error) {
         console.log(e.message);
       }
-      console.log("check deposit error ", pid_1, pid_2);
+      throw e;
     }
   }
 
