@@ -147,8 +147,7 @@ export class PlayerConvention {
     }
   }
 
-  async deposit(pid_1:bigint, pid_2:bigint, tokenIndex:bigint, amount:bigint) {
-    let nonce = await this.getNonce();
+  async deposit(nonce:bigint, pid_1:bigint, pid_2:bigint, tokenIndex:bigint, amount:bigint) {
     try {
       const state = await this.rpc.sendTransaction(
         createCommand(nonce, this.commandDeposit, [pid_1, pid_2, tokenIndex, amount]),
