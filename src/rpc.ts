@@ -163,14 +163,14 @@ export class ZKWasmAppRpc {
         method: 'GET'
       });
 
-      if (response.status === 201) {
+      if (response.status === 201 || response.status === 200) {
         const jsonResponse = response.data;
         return jsonResponse;
       } else {
-        throw "QueryDataError";
+        throw `Response Error with Status ${response.status}`;
       }
     } catch(error) {
-      throw "QueryDataError" + error;
+      throw "QueryDataError:" + error;
     }
   }
 
